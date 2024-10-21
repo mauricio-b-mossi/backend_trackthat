@@ -1,12 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Annotated
-from ..dependencies import get_token_header
 
 
 router = APIRouter(
     prefix="/applications",
     tags=["applications"],
-    dependencies=[Depends(get_token_header)],
     responses={404: {"description": "Not found"}}
 )
 
