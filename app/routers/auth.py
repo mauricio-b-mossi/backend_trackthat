@@ -1,6 +1,9 @@
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+
+auth_scheme = OAuth2PasswordBearer("auth/login") # To avoid circular import
+
 from typing import Annotated
 from sqlmodel import select, col
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import APIRouter, Body, HTTPException, status, Depends
 from pydantic import BaseModel, EmailStr
 from ..dependencies import SessionDep
@@ -37,7 +40,6 @@ class Token(BaseModel):
     token_type: str
 
 
-auth_scheme = OAuth2PasswordBearer("auth/login")
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated="auto")
 
