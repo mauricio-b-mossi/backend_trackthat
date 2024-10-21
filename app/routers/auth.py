@@ -43,7 +43,7 @@ async def signup(user : Annotated[UserInSignUp, Body()], session : SessionDep) -
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Username already exists.",
             )
-    newuser = User(name = user.name, email=user.email, password=user.password)
+    newuser = User(name = user.name, email=user.email, password=get_password_hash(user.password))
     session.add(newuser)
     session.commit()
     session.refresh(newuser)
