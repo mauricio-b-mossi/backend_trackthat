@@ -1,14 +1,13 @@
-from pydantic import BaseModel, HttpUrl
 from sqlmodel import Field, SQLModel, create_engine, Relationship
 from enum import Enum 
 import datetime
 
-class UserOut(SQLModel):
+class UserBase(SQLModel):
     id : int | None = Field(primary_key=True, default=None)
     name : str = Field(index=True)
     email : str
 
-class User(UserOut, table=True):
+class User(UserBase, table=True):
     password : str
 
     applications : list["Application"] = Relationship(back_populates="user")
@@ -19,22 +18,15 @@ class Status(Enum):
     REJECTED = 2
 
 
-class ApplicationIn(SQLModel):
+class ApplicationBase(SQLModel):
     company : str = Field(index=True)
     position : str | None
     description : str | None
-    link : HttpUrl | None
+    link : str | None
     status : Status = Field(index=True, default=Status.ON_GOING)
     date : datetime.date = Field(index=True)
 
-class ApplicationUpdate(BaseModel):
-    company : str | None
-    position : str | None
-    description : str | None
-    link : HttpUrl | None
-    status : Status | None
-
-class Application(ApplicationIn, table=True):
+class Application(ApplicationBase, table=True):
     user_id : int | None = Field(foreign_key="user.id", default=None)
     id : int | None = Field(primary_key=True, default=None) 
 

@@ -2,14 +2,31 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Body, Path, status
 from typing import Annotated
 from sqlmodel import col, desc, select
 from app.dependencies import SessionDep, get_current_user_id # Interface to database
-from app.models import Application, User, ApplicationIn, ApplicationUpdate
-
+from app.models import Application, User, Status
+from pydantic import BaseModel, HttpUrl
+import datetime
 
 router = APIRouter(
     prefix="/applications",
     tags=["applications"],
     responses={404: {"description": "Not found"}}
 )
+
+
+class ApplicationIn(BaseModel):
+    company : str
+    position : str | None
+    description : str | None
+    link : HttpUrl | None
+    status : Status = Status.ON_GOING
+    date : datetime.date
+
+class ApplicationUpdate(BaseModel):
+    company : str | None
+    position : str | None
+    description : str | None
+    link : str | None
+    status : Status | None
 
 @router.get("/", status_code=status.HTTP_200_OK) # get_all was redundant in the presence of skip and limit. 
 async def get_all_apps(

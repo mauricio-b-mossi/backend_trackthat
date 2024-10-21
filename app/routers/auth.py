@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, HTTPException, status, Depends
 from pydantic import BaseModel, EmailStr
 from ..dependencies import SessionDep
 from passlib.context import CryptContext 
-from app.models import User, UserOut
+from app.models import User, UserBase
 from datetime import timedelta, timezone, datetime
 import jwt
 
@@ -21,6 +21,21 @@ router = APIRouter(
     tags=["auth"],
     responses={404: {"description": "Not found"}},
 )
+
+class UserInSignUp(BaseModel):
+    name : str
+    email : EmailStr
+    password : str
+
+class UserInLogin(BaseModel):
+    name : str | None
+    email : EmailStr | None
+    password : str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
 
 auth_scheme = OAuth2PasswordBearer("auth/login")
 
@@ -42,22 +57,8 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-class UserInSignUp(BaseModel):
-    name : str
-    email : EmailStr
-    password : str
-
-class UserInLogin(BaseModel):
-    name : str | None
-    email : EmailStr | None
-    password : str
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
 @router.post("/signup")
-async def signup(user : Annotated[UserInSignUp, Body()], session : SessionDep) -> UserOut:
+async def signup(user : Annotated[UserInSignUp, Body()], session : SessionDep) -> UserBase:
     user_find = session.exec(select(User).where(col(User.name) == user.name)).first()
     if user_find:
        raise HTTPException(
