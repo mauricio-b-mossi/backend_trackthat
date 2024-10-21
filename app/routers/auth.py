@@ -9,9 +9,10 @@ from app.models import User, UserOut
 from datetime import timedelta, timezone, datetime
 import jwt
 
+
 # to get a string like this run:
 # openssl rand -hex 32
-SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+SECRET_KEY = "0bff56c7b85f5df372caaddbded53979155d91485f4d2762469a28234c535e69"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -21,12 +22,13 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-oauth2_sheme = OAuth2PasswordBearer(tokenUrl="login")
+auth_scheme = OAuth2PasswordBearer("auth/login")
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated="auto")
 
 def verify_password(plain_password : str, hash_password : str):
-    return pwd_context.verify(plain_password, hash_password)
+     print(pwd_context.verify(plain_password, hash_password))
+     return pwd_context.verify(plain_password, hash_password)
 
 def get_password_hash(password):
     return pwd_context.hash(password)
@@ -74,8 +76,8 @@ async def signup(user : Annotated[UserInSignUp, Body()], session : SessionDep) -
 async def login_for_access_token(
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session : SessionDep
 ) -> Token:
-    user = session.exec(select(User).where(col(User.name) == form_data.username)).one()
-    if not verify_password(form_data.username, user.password):
+    user = session.exec(select(User).where(col(User.name) == form_data.username)).first()
+    if not user or not verify_password(form_data.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
