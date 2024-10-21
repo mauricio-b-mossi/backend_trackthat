@@ -13,19 +13,19 @@ router = APIRouter(
 fake_app_db = []
 
 @router.get("/")
-async def get_all_apps(skip : Annotated[int, Query()] = 0, limit : Annotated[int, Query()] = 20, return_all: bool = False):
+async def get_all_apps(skip : Annotated[int, Query()] = 0, limit : Annotated[int, Query()] = 20, return_all : Annotated[bool, Query()] = False, sort : Annotated[bool, Query()] = False):
     if return_all:
         return fake_app_db
     
-    return fake_app_db[skip : skip + limit]
+    if sort:
+        sorted_apps = fake_app_db
+        sorted_apps.sort(key = lambda Application : Application.date)
+        return sorted_apps
     
+    return fake_app_db[skip : skip + limit]
 
-@router.get("/")
-async def get_sorted_apps():
-    sorted_apps = fake_app_db
-    sorted_apps.sort(key = lambda Application : Application.date)
-    return sorted_apps
 
 @router.get("/{application_id}")
 async def get_application(application_id : int):
     return fake_app_db[application_id]
+
