@@ -23,7 +23,7 @@ class ApplicationBase(SQLModel):
     position : str | None
     description : str | None
     link : str | None
-    status : Status = Field(index=True, default=Status.ON_GOING)
+    status : int = Field(index=True, default=Status.ON_GOING)
     date : datetime.date = Field(index=True)
 
 class Application(ApplicationBase, table=True):
