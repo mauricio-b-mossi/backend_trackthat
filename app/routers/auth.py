@@ -10,11 +10,11 @@ from datetime import timedelta, timezone, datetime
 import jwt
 
 
-# to get a string like this run:
-# openssl rand -hex 32
+# EXTRACT THIS TO ENV.
 SECRET_KEY = "0bff56c7b85f5df372caaddbded53979155d91485f4d2762469a28234c535e69"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
 
 router = APIRouter(
     prefix="/auth",
@@ -27,7 +27,6 @@ auth_scheme = OAuth2PasswordBearer("auth/login")
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated="auto")
 
 def verify_password(plain_password : str, hash_password : str):
-     print(pwd_context.verify(plain_password, hash_password))
      return pwd_context.verify(plain_password, hash_password)
 
 def get_password_hash(password):
@@ -42,7 +41,6 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
-
 
 class UserInSignUp(BaseModel):
     name : str

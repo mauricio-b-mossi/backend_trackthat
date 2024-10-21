@@ -1,4 +1,7 @@
-from sqlmodel import Field, SQLModel, create_engine
+from pydantic import BaseModel, HttpUrl
+from sqlmodel import Field, SQLModel, create_engine, Relationship
+from enum import Enum 
+import datetime
 
 class UserOut(SQLModel):
     id : int | None = Field(primary_key=True, default=None)
@@ -8,21 +11,43 @@ class UserOut(SQLModel):
 class User(UserOut, table=True):
     password : str
 
-class Application(SQLModel, table=True):
-    id : int | None = Field(primary_key=True, default=None) 
-    user_id : int = Field(default=None, foreign_key="user.id")
+    applications : list["Application"] = Relationship(back_populates="user")
+
+class Status(Enum):
+    ON_GOING = 0
+    ACCEPTED = 1
+    REJECTED = 2
+
+
+class ApplicationIn(SQLModel):
     company : str = Field(index=True)
     position : str | None
     description : str | None
-    link : str | None
-    status : int = Field(index=True)
-    date : str = Field(index=True)
+    link : HttpUrl | None
+    status : Status = Field(index=True, default=Status.ON_GOING)
+    date : datetime.date = Field(index=True)
+
+class ApplicationUpdate(BaseModel):
+    company : str | None
+    position : str | None
+    description : str | None
+    link : HttpUrl | None
+    status : Status | None
+
+class Application(ApplicationIn, table=True):
+    user_id : int | None = Field(foreign_key="user.id", default=None)
+    id : int | None = Field(primary_key=True, default=None) 
+
+    user : User = Relationship(back_populates="applications")
+    notes : list["Notes"] = Relationship(back_populates="application")
 
 class Notes(SQLModel, table=True):
     id : int | None = Field(primary_key=True, default=None) 
-    application_id : int = Field(default=None, foreign_key="application.id")
+    application_id : int | None = Field(foreign_key="application.id", default=None)
     description : str
     date : str = Field(index=True)
+
+    application : Application = Relationship(back_populates="notes")
 
 engine = create_engine("sqlite:///database.db", echo=True)
 
