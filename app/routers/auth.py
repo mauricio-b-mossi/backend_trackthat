@@ -30,8 +30,7 @@ class UserInSignUp(BaseModel):
     password : str
 
 class UserInLogin(BaseModel):
-    name : str | None
-    email : EmailStr | None
+    email : EmailStr
     password : str
 
 class Token(BaseModel):
@@ -81,6 +80,21 @@ async def login_for_access_token(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+            data={"sub": f"{user.id}:{user.name}"}, expires_delta=access_token_expires
+    )
+    return Token(access_token=access_token, token_type="bearer") 
+
+@router.post("/login-email")
+async def login_email(request_user : Annotated[UserInLogin, Body()], session : SessionDep):
+    user = session.exec(select(User).where(col(User.email) == request_user.email)).first()
+    if not user or not verify_password(request_user.password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
